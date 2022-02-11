@@ -1,0 +1,137 @@
+from tkinter import *
+from tkinter import messagebox
+import json
+from difflib import get_close_matches
+import pyttsx3
+from PIL import ImageTk,Image
+
+data=json.load(open("data.json"))
+
+def translate():
+    global result
+    global w
+    w = entry.get()
+    global word
+    word=w.lower()
+    if word in data.keys():
+        text.delete(1.0, END)
+        result=data[word]
+        for i in result:
+            text.insert(END, "*" +i +"\n")
+
+    elif word.title() in data.keys():
+        text.delete(1.0, END)
+        result=data[word.title()]
+        for i in result:
+            text.insert(END,"*" +i +"\n")
+
+    elif word.upper() in data.keys():
+        text.delete(1.0, END)
+        result=data[word.upper()]
+        for i in result:
+            text.insert(END,"*" +i +"\n")
+
+    elif len(get_close_matches(word,data.keys()))>0:
+        close_match=get_close_matches(word,data.keys())[0]
+        message=messagebox.askyesno("show info",f"Do you mean {close_match}")
+
+        if message==True:
+            text.delete(1.0, END)
+            result=data[close_match]
+            for i in result:
+                text.insert(END,"*" +i +"\n")
+
+        elif message==False:
+            text.delete(1.0, END)
+            result="Word is not in Dictionary"
+            show_screen=messagebox.showerror("Show Info",result)
+            entry.delete(0, END)
+        else:
+            text.delete(1.0, END)
+            result="Word is not in Dictionary"
+            show_screen=messagebox.showerror("Show Info",result)
+            entry.delete(0, END)
+    else:
+        text.delete(1.0, END)
+        result="Word is not in Dictionary"
+        show_screen=messagebox.showerror("Show Info",result)
+        entry.delete(0, END)
+
+def clear():
+    entry.delete(0, END)
+    text.delete(1.0, END)
+
+
+def speak1():
+    global w
+    w = entry.get()
+    engine = pyttsx3.init()
+    voices = engine.getProperty('voices')
+    engine.setProperty('voice', voices[0].id)
+    engine.setProperty("rate", 150)
+    engine.say(w)
+    engine.runAndWait()
+
+def speak2():
+    engine = pyttsx3.init()
+    voices = engine.getProperty('voices')
+    engine.setProperty('voice', voices[0].id)
+    engine.setProperty("rate", 150)
+    engine.say(result)
+    engine.runAndWait()
+
+def stop():
+    return
+
+root=Tk()
+root.title("Interactive Dictionary")
+root.geometry("1000x800")
+root.iconbitmap("dictionary icon.ico")
+
+
+img=ImageTk.PhotoImage(Image.open("back.png"))
+label=Label(root,image=img)
+label.place(x=0,y=0)
+
+frame=Frame(root)
+frame.pack()
+
+department=Label(frame,text=" ***ZCOER Robotics and Automation Department***",font=("arial black","20"),bg="#dec8ab",relief=GROOVE)
+department.pack()
+
+heading=Label(frame,text="INTERACTIVE DICTIONARY",font=("arial black","38","bold"),bg="#dec8ab",relief=GROOVE)
+heading.pack()
+
+word=Label(root,text="WORD",font=("arial black","20","bold"),bg="#dec8ab",relief=GROOVE)
+word.place(x=420,y=130)
+
+word=Label(root,text="MEANING",font=("arial black","20","bold"),bg="#dec8ab",relief=GROOVE)
+word.place(x=400,y=300)
+
+entry=Entry(root,font=("algerian","14","bold"),relief=RAISED,bd=10,width=50,justify=CENTER,bg="#dec8ab")
+entry.place(x=200,y=190)
+
+button_speak1=Button(root,text="speak",width=8,command=speak1,bd=10,bg="#dec8ab")
+button_speak1.place(x=480,y=240)
+
+button_search=Button(root,text="search",width=8,command=translate,bd=10,bg="#dec8ab")
+button_search.place(x=380,y=240)
+
+
+text=Text(root,wrap=WORD,font=("algerian","14","bold"),width=50,height=15,relief=RAISED,bd=10,bg="#dec8ab")
+text.place(x=200,y=350)
+
+button_speak2=Button(root,text="speak",width=10,height=1,command=speak2,bd=10,bg="#dec8ab")
+button_speak2.place(x=610,y=710)
+
+
+
+button_clear=Button(root,text="clear",width=10,command=clear,bd=10,bg="#dec8ab")
+button_clear.place(x=440,y=710)
+
+button_exit=Button(root,text="Exit",width=10,height=1,command=root.destroy,bd=10,bg="#dec8ab")
+button_exit.place(x=270,y=710)
+
+
+
+root.mainloop()
